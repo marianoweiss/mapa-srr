@@ -141,7 +141,7 @@
                 const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
 
                 if (error) {
-                    msgLogin.innerText = "Credenciales incorrectas.";
+                    msgLogin.innerText = error.message;
                     msgLogin.className = "status-msg error";
                     msgLogin.style.display = "block";
                     btnLogin.innerText = "Ingresar al Sistema";
