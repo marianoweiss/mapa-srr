@@ -3,270 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Interactivo - Sociedad Rural de Rivadavia</title>
+    <title>Panel de Carga - Sociedad Rural de Rivadavia</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
     
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #mapa { width: 100vw; height: 100vh; z-index: 1; }
+        :root { --color-primario: #2E7D32; --color-secundario: #1B5E20; --color-fondo: #f4f7f6; --color-texto: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--color-fondo); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 95vh;}
         
-        /* Panel de Filtros Flotante */
-        .panel-filtros {
-            position: absolute;
-            top: 15px;
-            left: 50px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            width: 290px;
-            backdrop-filter: blur(5px);
-        }
-
-        h3 { font-size: 12px; color: #374151; margin: 0 0 6px 0; font-weight: 700; }
+        /* Contenedores */
+        .admin-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; border-top: 5px solid var(--color-primario); display: none; }
+        .login-container { background: white; padding: 40px 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; width: 100%; border-top: 5px solid var(--color-primario); text-align: center; }
         
-        .input-fecha {
-            width: 100%; padding: 8px; border: 1px solid #d1d5db;
-            border-radius: 6px; box-sizing: border-box; font-size: 12px; margin-bottom: 12px;
-        }
-
-        /* Botones de Filtro (Estilo Radio Button Reducido) */
-        .btn-group { display: flex; gap: 4px; margin-bottom: 12px; width: 100%; }
+        .header-logo img { max-height: 90px; width: auto; margin-bottom: 20px; }
+        h2 { margin-top: 0; color: var(--color-texto); border-bottom: 2px solid #eaeaea; padding-bottom: 10px; font-size: 20px; text-align: center; }
         
-        .btn-filtro {
-            flex: 1;
-            padding: 6px 2px;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            background: #ffffff;
-            font-size: 11px;
-            font-weight: bold;
-            color: #6b7280;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
+        /* Formularios */
+        .form-group { margin-bottom: 22px; text-align: left;}
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #555; font-size: 14px; }
+        input[type="text"], input[type="password"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        input:focus { outline: none; border-color: var(--color-primario); }
         
-        .btn-filtro span { font-size: 16px; display: block; margin-bottom: 2px; }
+        /* Elementos del mapa */
+        #mapa-selector { height: 350px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; z-index: 1; }
+        .coords-display { background: #e9ecef; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 13px; color: var(--color-texto); text-align: center; }
         
-        /* Estado Activo Neutro */
-        .btn-filtro.active {
-            border-color: #4b5563;
-            background-color: #f3f4f6;
-            color: #374151;
-        }
-
-        .btn-reset {
-            width: 100%; padding: 8px; border: 1px solid #d1d5db;
-            background: #f9fafb; border-radius: 6px; color: #6b7280;
-            font-size: 12px; font-weight: bold; cursor: pointer;
-        }
-        .btn-reset:hover { background: #e5e7eb; }
-
-        /* Logo SRR */
-        .logo-flotante {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 1000;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo-flotante img { height: 70px; width: auto; display: block; }
-
-        /* Popups del Mapa */
-        .popup-media { width: 100%; max-height: 200px; object-fit: cover; border-radius: 5px; margin-top: 5px; }
-        .popup-fecha { font-size: 12px; color: #666; font-weight: bold; margin-bottom: 5px; }
-        .popup-categoria { display: inline-block; padding: 3px 8px; border-radius: 12px; color: white; font-size: 11px; font-weight: bold; margin-bottom: 8px; }
-        .cat-Caminos { background-color: #8b5a2b; }
-        .cat-Agua { background-color: #3388ff; }
+        /* Botones */
+        .category-group { display: flex; gap: 10px; }
+        .btn-cat { flex: 1; padding: 12px; background-color: #f0f0f0; border: 2px solid #ddd; border-radius: 5px; font-size: 15px; font-weight: bold; color: #666; cursor: pointer; transition: all 0.2s; }
+        .btn-cat.active { background-color: var(--color-primario); border-color: var(--color-primario); color: white; }
+        .btn-submit { width: 100%; padding: 15px; background-color: var(--color-primario); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: var(--color-secundario); }
+        .btn-logout { background: none; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; font-size: 14px; margin-top: 20px; text-decoration: underline; display: block; width: 100%; text-align: center; }
         
-        /* Círculos Perfectos para Marcadores */
-        .marcador-perfecto {
-            border-radius: 50% !important;
-            width: 100% !important;
-            height: 100% !important;
-            border: 2px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-        }
-
-        /* Pantalla de Carga */
-        #pantalla-carga { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #111; color: white; display: flex; justify-content: center; align-items: center; z-index: 9999; font-weight: bold; font-size: 18px; }
+        /* Alertas */
+        .status-msg { margin-top: 15px; text-align: center; font-weight: bold; padding: 12px; border-radius: 5px; display: none; font-size: 14px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-    <div id="pantalla-carga">Conectando a la base de datos...</div>
-
-    <div class="logo-flotante">
-        <img src="logo.png" alt="Sociedad Rural Rivadavia" onerror="this.style.display='none'">
+    <!-- PANTALLA DE LOGIN -->
+    <div class="login-container" id="login-section">
+        <div class="header-logo"><img src="logo.png" alt="SRR" onerror="this.style.display='none'"></div>
+        <h2>Acceso Restringido</h2>
+        <form id="form-login">
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="text" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit" class="btn-submit" id="btn-login">Ingresar al Sistema</button>
+            <div id="login-msg" class="status-msg"></div>
+        </form>
     </div>
 
-    <!-- PANEL DE FILTROS REDISEÑADO -->
-    <div class="panel-filtros">
-        <h3>Filtrar por Rango de Fechas</h3>
-        <input type="text" id="filtro-fecha" class="input-fecha" placeholder="Ej: 2026-04-01 a 2026-04-30">
+    <!-- PANTALLA DE CARGA (Oculta por defecto) -->
+    <div class="admin-container" id="admin-section">
+        <div class="header-logo"><img src="logo.png" alt="SRR" onerror="this.style.display='none'"></div>
+        <h2>Ingresar Nuevo Relevamiento</h2>
+        
+        <form id="form-relevamiento">
+            <div class="form-group">
+                <label>1. Selecciona la Ubicación en el Mapa</label>
+                <div id="mapa-selector"></div>
+                <div class="coords-display" id="coords-text">Haz clic en el mapa para fijar las coordenadas</div>
+                <input type="hidden" id="latitud" required>
+                <input type="hidden" id="longitud" required>
+            </div>
 
-        <h3>Categoría</h3>
-        <div class="btn-group" id="grupo-categoria">
-            <button class="btn-filtro active" data-val="Todos"><span>🔵</span>Todos</button>
-            <button class="btn-filtro" data-val="Caminos"><span>🚜</span>Caminos</button>
-            <button class="btn-filtro" data-val="Agua"><span>💧</span>Aguas</button>
-        </div>
+            <div class="form-group">
+                <label>2. Fecha de la Toma</label>
+                <input type="text" id="fecha" placeholder="Selecciona una fecha en el calendario..." required>
+            </div>
 
-        <h3>Formato de Archivo</h3>
-        <div class="btn-group" id="grupo-formato">
-            <button class="btn-filtro active" data-val="Todos"><span>🔵</span>Todos</button>
-            <button class="btn-filtro" data-val="foto"><span>📸</span>Fotos</button>
-            <button class="btn-filtro" data-val="video"><span>🎥</span>Videos</button>
-        </div>
+            <div class="form-group">
+                <label>3. Categoría</label>
+                <div class="category-group">
+                    <button type="button" class="btn-cat active" data-val="Caminos">Caminos</button>
+                    <button type="button" class="btn-cat" data-val="Agua">Aguas</button>
+                </div>
+                <input type="hidden" id="categoria" value="Caminos" required>
+            </div>
 
-        <button class="btn-reset" id="btn-reset">↺ Restablecer Filtros</button>
+            <div class="form-group">
+                <label>4. Archivo (Foto o Video)</label>
+                <input type="file" id="archivo" accept="image/*,video/mp4" required>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-submit">Subir a la Base de Datos</button>
+            <div id="status-msg" class="status-msg"></div>
+        </form>
+        
+        <button class="btn-logout" id="btn-logout">Cerrar Sesión Segura</button>
     </div>
 
-    <div id="mapa"></div>
-
-    <!-- Librerías -->
+    <!-- Librerías Externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/es.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <script src="limites.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             
-            // --- CONEXIÓN SUPABASE ---
-            const SUPABASE_URL = 'https://kebtmodjufzvujwksnfx.supabase.co'; 
+            // --- 1. CONFIGURACIÓN DE SUPABASE ---
+            const SUPABASE_URL = 'https://kebtmodjufzvujwksnfx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_Zb1k9GfDLj1zstrog98zug_RAwQluPM'; 
-            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // --- INICIALIZAR MAPA ---
-            const map = L.map('mapa', { zoomControl: false }).setView([-35.5, -63.3], 9);
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
+            const loginSection = document.getElementById('login-section');
+            const adminSection = document.getElementById('admin-section');
+            let mapInstalado = false; // Bandera para evitar cargar el mapa doble
+
+            // --- 2. GESTIÓN DE SESIÓN (LOGIN) ---
             
-            if (typeof limitesPartido !== 'undefined') {
-                L.geoJSON(limitesPartido, { style: { color: "#00FF00", weight: 3, fillOpacity: 0, interactive: false } }).addTo(map);
+            // Revisar si ya hay una sesión activa al entrar
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) mostrarPanelCarga();
+
+            document.getElementById('form-login').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btnLogin = document.getElementById('btn-login');
+                const msgLogin = document.getElementById('login-msg');
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                btnLogin.innerText = "Verificando...";
+                
+                const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+
+                if (error) {
+                    msgLogin.innerText = error.message;
+                    msgLogin.className = "status-msg error";
+                    msgLogin.style.display = "block";
+                    btnLogin.innerText = "Ingresar al Sistema";
+                } else {
+                    mostrarPanelCarga();
+                }
+            });
+
+            document.getElementById('btn-logout').addEventListener('click', async function() {
+                await supabase.auth.signOut();
+                window.location.reload(); // Recarga la página para volver al login
+            });
+
+            function mostrarPanelCarga() {
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
+                
+                if (!mapInstalado) inicializarHerramientas(); // Solo cargar mapa si no se cargó antes
             }
 
-            const capaMarcadores = L.layerGroup().addTo(map);
-            let todosLosDatos = [];
+            // --- 3. INICIALIZAR HERRAMIENTAS (Solo si hay acceso) ---
+            function inicializarHerramientas() {
+                mapInstalado = true;
+                
+                // Mapa
+                const map = L.map('mapa-selector').setView([-35.5, -63.3], 9);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
+                
+                if (typeof limitesPartido !== 'undefined') {
+                    L.geoJSON(limitesPartido, { style: { color: "#00FF00", weight: 3, fillOpacity: 0 } }).addTo(map);
+                }
+                
+                setTimeout(() => { map.invalidateSize(); }, 300); // Forzar dibujo correcto
+                
+                let marcadorActual = null;
+                map.on('click', function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    if (marcadorActual) map.removeLayer(marcadorActual);
+                    marcadorActual = L.marker([lat, lng]).addTo(map);
+                    document.getElementById('latitud').value = lat;
+                    document.getElementById('longitud').value = lng;
+                    document.getElementById('coords-text').innerText = `Lat: ${lat.toFixed(5)} | Lng: ${lng.toFixed(5)}`;
+                });
 
-            // --- LÓGICA DE BOTONES (RADIO BUTTONS) ---
-            let filtroCatActual = 'Todos';
-            let filtroFormatoActual = 'Todos';
-
-            function configurarBotonesFiltro(selectorGrupo, tipo) {
-                const botones = document.querySelectorAll(`${selectorGrupo} .btn-filtro`);
-                botones.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Desmarcar todos en este grupo específico
-                        botones.forEach(b => b.classList.remove('active'));
-                        // Marcar el presionado
-                        btn.classList.add('active');
-                        
-                        // Guardar el valor seleccionado
-                        if (tipo === 'categoria') filtroCatActual = btn.getAttribute('data-val');
-                        if (tipo === 'formato') filtroFormatoActual = btn.getAttribute('data-val');
-                        
-                        aplicarFiltros();
+                // Calendario y Categorías
+                flatpickr("#fecha", { locale: "es", dateFormat: "Y-m-d", disableMobile: true });
+                const botonesCat = document.querySelectorAll('.btn-cat');
+                const inputCategoria = document.getElementById('categoria');
+                botonesCat.forEach(boton => {
+                    boton.addEventListener('click', function() {
+                        botonesCat.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        inputCategoria.value = this.getAttribute('data-val');
                     });
                 });
-            }
 
-            configurarBotonesFiltro('#grupo-categoria', 'categoria');
-            configurarBotonesFiltro('#grupo-formato', 'formato');
+                // Lógica de Subida
+                document.getElementById('form-relevamiento').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btn-submit');
+                    const status = document.getElementById('status-msg');
+                    const lat = document.getElementById('latitud').value;
+                    const lng = document.getElementById('longitud').value;
+                    const fecha = document.getElementById('fecha').value;
+                    const categoria = document.getElementById('categoria').value;
+                    let archivoRaw = document.getElementById('archivo').files[0];
 
-            // --- FILTRO DE FECHAS ---
-            const fp = flatpickr("#filtro-fecha", {
-                mode: "range", locale: "es", dateFormat: "Y-m-d",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length === 2 || selectedDates.length === 0) aplicarFiltros();
-                }
-            });
-
-            document.getElementById('btn-reset').addEventListener('click', () => {
-                fp.clear();
-                // Simular clic en los botones "Todos"
-                document.querySelector('#grupo-categoria .btn-filtro[data-val="Todos"]').click();
-                document.querySelector('#grupo-formato .btn-filtro[data-val="Todos"]').click();
-            });
-
-            // --- CARGAR DATOS ---
-            async function cargarDatos() {
-                try {
-                    const { data, error } = await db.from('relevamientos').select('*');
-                    if (error) throw error;
-                    todosLosDatos = data;
-                    aplicarFiltros();
-                    document.getElementById('pantalla-carga').style.display = 'none';
-                } catch (error) {
-                    document.getElementById('pantalla-carga').innerText = 'Error al cargar los datos.';
-                }
-            }
-
-            // --- DIBUJAR Y FILTRAR ---
-            function aplicarFiltros() {
-                capaMarcadores.clearLayers();
-                const fechas = fp.selectedDates;
-
-                todosLosDatos.forEach(rev => {
-                    // 1. Validar Categoría
-                    const pasaCat = (filtroCatActual === 'Todos' || rev.categoria === filtroCatActual);
-                    
-                    // 2. Validar Formato
-                    const pasaFormato = (filtroFormatoActual === 'Todos' || rev.tipo_archivo === filtroFormatoActual);
-                    
-                    // 3. Validar Fecha
-                    let pasaFecha = true;
-                    if (fechas.length === 2) {
-                        const fechaRev = new Date(rev.fecha + 'T00:00:00');
-                        pasaFecha = (fechaRev >= fechas[0] && fechaRev <= fechas[1]);
+                    if (!lat || !lng) {
+                        status.innerText = 'Debes hacer clic en el mapa para fijar la ubicación.';
+                        status.className = 'status-msg error'; status.style.display = 'block';
+                        return;
                     }
 
-                    if (pasaCat && pasaFormato && pasaFecha) {
-                        dibujarMarcador(rev);
+                    btn.disabled = true; btn.innerText = 'Procesando archivo...'; status.style.display = 'none';
+
+                    try {
+                        let archivoFinal = archivoRaw;
+                        const esImagen = archivoRaw.type.startsWith('image/');
+                        const tipoArchivo = esImagen ? 'foto' : 'video';
+
+                        if (esImagen) {
+                            try {
+                                if (typeof browserImageCompression !== 'undefined') {
+                                    archivoFinal = await browserImageCompression(archivoRaw, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: false });
+                                }
+                            } catch (compErr) { archivoFinal = archivoRaw; }
+                        }
+
+                        btn.innerText = 'Subiendo a la nube...';
+                        const nombreArchivo = `${Date.now()}_${archivoFinal.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+                        
+                        const { error: storageError } = await supabase.storage.from('archivos_mapa').upload(nombreArchivo, archivoFinal);
+                        if (storageError) throw storageError;
+
+                        const { data: urlData } = supabase.storage.from('archivos_mapa').getPublicUrl(nombreArchivo);
+                        
+                        btn.innerText = 'Guardando registro...';
+                        const { error: dbError } = await supabase.from('relevamientos').insert([{
+                            fecha: fecha, latitud: parseFloat(lat), longitud: parseFloat(lng),
+                            categoria: categoria, tipo_archivo: tipoArchivo, url_archivo: urlData.publicUrl
+                        }]);
+                        if (dbError) throw dbError;
+
+                        status.innerText = '¡Relevamiento guardado con éxito!';
+                        status.className = 'status-msg success'; status.style.display = 'block';
+                        document.getElementById('form-relevamiento').reset();
+                        if (marcadorActual) map.removeLayer(marcadorActual);
+                        document.getElementById('coords-text').innerText = 'Haz clic en el mapa para fijar las coordenadas';
+                        botonesCat[0].click(); 
+
+                    } catch (error) {
+                        status.innerText = 'Ocurrió un error. Verifica tu conexión.';
+                        status.className = 'status-msg error'; status.style.display = 'block';
+                    } finally {
+                        btn.disabled = false; btn.innerText = 'Subir a la Base de Datos';
                     }
                 });
             }
-
-            function dibujarMarcador(rev) {
-                const colorFondo = rev.categoria === 'Caminos' ? '#8b5a2b' : '#3388ff';
-                
-                // Forzamos el div a ser un círculo perfecto vía CSS
-                const iconoHTML = `<div class="marcador-perfecto" style="background-color: ${colorFondo};"></div>`;
-                
-                const iconoCustom = L.divIcon({
-                    className: 'custom-icon-wrapper',
-                    html: iconoHTML,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8] // Centra el círculo exacto sobre la coordenada
-                });
-
-                const marcador = L.marker([rev.latitud, rev.longitud], { icon: iconoCustom }).addTo(capaMarcadores);
-
-                let mediaHTML = rev.tipo_archivo === 'foto' 
-                    ? `<img src="${rev.url_archivo}" class="popup-media" alt="Foto Relevamiento">`
-                    : `<video src="${rev.url_archivo}" class="popup-media" controls></video>`;
-
-                const popupContent = `
-                    <div style="text-align:center; min-width:200px;">
-                        <div class="popup-fecha">${rev.fecha}</div>
-                        <span class="popup-categoria cat-${rev.categoria}">${rev.categoria}</span>
-                        ${mediaHTML}
-                    </div>
-                `;
-                marcador.bindPopup(popupContent);
-            }
-
-            cargarDatos();
         });
     </script>
 </body>
